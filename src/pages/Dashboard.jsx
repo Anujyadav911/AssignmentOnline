@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { useQuery, useMutation } from '@apollo/client'
+import { useMutation } from '@apollo/client'
+import { useAuthQuery } from '@nhost/react-apollo'
 import { useUserData, useSignOut } from '@nhost/react'
 import {
   GET_TODOS,
@@ -69,7 +70,7 @@ export default function Dashboard() {
   const [newTodo, setNewTodo] = useState('')
   const [filter, setFilter] = useState('all') // all | active | completed
 
-  const { data, loading, error } = useQuery(GET_TODOS)
+  const { data, loading, error } = useAuthQuery(GET_TODOS)
   const [insertTodo] = useMutation(INSERT_TODO, {
     refetchQueries: [GET_TODOS],
   })
@@ -167,7 +168,7 @@ export default function Dashboard() {
             Error loading todos. Check your Nhost configuration.
           </p>
         )}
-        {!loading && filteredTodos.length === 0 && (
+        {!loading && !error && filteredTodos.length === 0 && (
           <p className="empty-msg">
             {filter === 'all'
               ? '🎉 No todos yet. Add one above!'
