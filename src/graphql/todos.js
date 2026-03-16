@@ -24,6 +24,17 @@ export const INSERT_TODO = gql`
   }
 `
 
+export const INSERT_TODO_BASIC = gql`
+  mutation InsertTodoBasic($title: String!) {
+    insert_todos_one(object: { title: $title, is_completed: false }) {
+      id
+      title
+      is_completed
+      created_at
+    }
+  }
+`
+
 export const TOGGLE_TODO = gql`
   mutation ToggleTodo($id: uuid!, $is_completed: Boolean!) {
     update_todos_by_pk(

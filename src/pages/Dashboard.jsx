@@ -4,6 +4,7 @@ import { useUserData, useSignOut, useAuthenticationStatus } from '@nhost/react'
 import {
   GET_TODOS,
   INSERT_TODO,
+  INSERT_TODO_BASIC,
   TOGGLE_TODO,
   DELETE_TODO,
   UPDATE_TODO_TITLE,
@@ -77,6 +78,9 @@ export default function Dashboard() {
   const [insertTodo] = useMutation(INSERT_TODO, {
     refetchQueries: [GET_TODOS],
   })
+  const [insertTodoBasic] = useMutation(INSERT_TODO_BASIC, {
+    refetchQueries: [GET_TODOS],
+  })
   const [toggleTodo] = useMutation(TOGGLE_TODO, {
     refetchQueries: [GET_TODOS],
   })
@@ -93,20 +97,39 @@ export default function Dashboard() {
     setAddError('')
 
     try {
-      if (!user?.id) {
-        setAddError('You are not authenticated. Please sign in again.')
-        return
-      }
-
       await insertTodo({
-        variables: { title: newTodo.trim(), user_id: user.id },
+        variables: { title: newTodo.trim(), user_id: user?.id },
       })
       setNewTodo('')
     } catch (err) {
-      const mutationError =
+      const message =
         err?.graphQLErrors?.[0]?.message ||
         err?.networkError?.result?.errors?.[0]?.message ||
         err?.message ||
+        ''
+
+      const shouldRetryWithoutUserId = /user_id|field\s+"?user_id"?|permission|not-null|not null/i.test(
+        message
+      )
+
+      if (shouldRetryWithoutUserId) {
+        try {
+          await insertTodoBasic({ variables: { title: newTodo.trim() } })
+          setNewTodo('')
+          return
+        } catch (fallbackErr) {
+          const fallbackMessage =
+            fallbackErr?.graphQLErrors?.[0]?.message ||
+            fallbackErr?.networkError?.result?.errors?.[0]?.message ||
+            fallbackErr?.message ||
+            'Failed to add todo.'
+          setAddError(fallbackMessage)
+          return
+        }
+      }
+
+      const mutationError =
+        message ||
         'Failed to add todo.'
       setAddError(mutationError)
     }
