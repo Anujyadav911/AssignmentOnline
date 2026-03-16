@@ -12,7 +12,7 @@ import './index.css'
 export default function App() {
   return (
     <NhostProvider nhost={nhost}>
-      <NhostApolloProvider nhost={nhost}>
+      <NhostApolloProvider nhost={nhost} connectToDevTools={false}>
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
