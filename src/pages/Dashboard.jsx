@@ -113,6 +113,12 @@ export default function Dashboard() {
   const activeCount = todos.filter((t) => !t.is_completed).length
   const completedCount = todos.filter((t) => t.is_completed).length
 
+  const queryErrorMessage =
+    error?.graphQLErrors?.[0]?.message ||
+    error?.networkError?.result?.errors?.[0]?.message ||
+    error?.message ||
+    ''
+
   return (
     <div className="dashboard">
       {/* Header */}
@@ -165,7 +171,7 @@ export default function Dashboard() {
         {loading && <p className="status-msg">Loading todos…</p>}
         {error && (
           <p className="error-msg">
-            Error loading todos. Check your Nhost configuration.
+            Error loading todos: {queryErrorMessage || 'Check your Nhost configuration.'}
           </p>
         )}
         {!loading && !error && filteredTodos.length === 0 && (
