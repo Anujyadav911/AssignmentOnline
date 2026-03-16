@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
-import { useMutation } from '@apollo/client'
-import { useAuthQuery } from '@nhost/react-apollo'
-import { useUserData, useSignOut } from '@nhost/react'
+import { useMutation, useQuery } from '@apollo/client'
+import { useUserData, useSignOut, useAuthenticationStatus } from '@nhost/react'
 import {
   GET_TODOS,
   INSERT_TODO,
@@ -67,10 +66,13 @@ function TodoItem({ todo, onToggle, onDelete, onEdit }) {
 export default function Dashboard() {
   const user = useUserData()
   const { signOut } = useSignOut()
+  const { isAuthenticated } = useAuthenticationStatus()
   const [newTodo, setNewTodo] = useState('')
   const [filter, setFilter] = useState('all') // all | active | completed
 
-  const { data, loading, error } = useAuthQuery(GET_TODOS)
+  const { data, loading, error } = useQuery(GET_TODOS, {
+    skip: !isAuthenticated,
+  })
   const [insertTodo] = useMutation(INSERT_TODO, {
     refetchQueries: [GET_TODOS],
   })
