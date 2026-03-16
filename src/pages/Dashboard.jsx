@@ -9,6 +9,7 @@ import {
   DELETE_TODO,
   UPDATE_TODO_TITLE,
 } from '../graphql/todos'
+import nhost from '../nhost'
 
 function TodoItem({ todo, onToggle, onDelete, onEdit }) {
   const [editing, setEditing] = useState(false)
@@ -97,9 +98,8 @@ export default function Dashboard() {
     setAddError('')
 
     try {
-      await insertTodo({
-        variables: { title: newTodo.trim(), user_id: user?.id },
-      })
+      // Most Nhost setups with Hasura presets work with this mutation.
+      await insertTodoBasic({ variables: { title: newTodo.trim() } })
       setNewTodo('')
     } catch (err) {
       const message =
@@ -108,13 +108,21 @@ export default function Dashboard() {
         err?.message ||
         ''
 
-      const shouldRetryWithoutUserId = /user_id|field\s+"?user_id"?|permission|not-null|not null/i.test(
+      const shouldRetryWithUserId = /user_id|not-null|not null|null value/i.test(
         message
       )
 
-      if (shouldRetryWithoutUserId) {
+      if (shouldRetryWithUserId) {
+        const userId = user?.id || nhost.auth.getUser()?.id
+        if (!userId) {
+          setAddError('You are not authenticated. Please sign in again.')
+          return
+        }
+
         try {
-          await insertTodoBasic({ variables: { title: newTodo.trim() } })
+          await insertTodo({
+            variables: { title: newTodo.trim(), user_id: userId },
+          })
           setNewTodo('')
           return
         } catch (fallbackErr) {
