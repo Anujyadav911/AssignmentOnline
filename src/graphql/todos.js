@@ -12,8 +12,10 @@ export const GET_TODOS = gql`
 `
 
 export const INSERT_TODO = gql`
-  mutation InsertTodo($title: String!) {
-    insert_todos_one(object: { title: $title, is_completed: false }) {
+  mutation InsertTodo($title: String!, $user_id: uuid!) {
+    insert_todos_one(
+      object: { title: $title, is_completed: false, user_id: $user_id }
+    ) {
       id
       title
       is_completed

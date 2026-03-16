@@ -68,6 +68,7 @@ export default function Dashboard() {
   const { signOut } = useSignOut()
   const { isAuthenticated } = useAuthenticationStatus()
   const [newTodo, setNewTodo] = useState('')
+  const [addError, setAddError] = useState('')
   const [filter, setFilter] = useState('all') // all | active | completed
 
   const { data, loading, error } = useQuery(GET_TODOS, {
@@ -89,8 +90,26 @@ export default function Dashboard() {
   const handleAddTodo = async (e) => {
     e.preventDefault()
     if (!newTodo.trim()) return
-    await insertTodo({ variables: { title: newTodo.trim() } })
-    setNewTodo('')
+    setAddError('')
+
+    try {
+      if (!user?.id) {
+        setAddError('You are not authenticated. Please sign in again.')
+        return
+      }
+
+      await insertTodo({
+        variables: { title: newTodo.trim(), user_id: user.id },
+      })
+      setNewTodo('')
+    } catch (err) {
+      const mutationError =
+        err?.graphQLErrors?.[0]?.message ||
+        err?.networkError?.result?.errors?.[0]?.message ||
+        err?.message ||
+        'Failed to add todo.'
+      setAddError(mutationError)
+    }
   }
 
   const handleToggle = (id, is_completed) => {
@@ -149,6 +168,7 @@ export default function Dashboard() {
           />
           <button type="submit" className="btn-add">+ Add</button>
         </form>
+        {addError && <p className="error-msg">Add failed: {addError}</p>}
 
         {/* Stats */}
         <div className="stats">
