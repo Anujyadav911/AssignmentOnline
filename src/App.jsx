@@ -14,7 +14,9 @@ export default function App() {
   return (
     <NhostProvider nhost={nhost}>
       <ApolloProvider client={apolloClient}>
-        <BrowserRouter>
+        <BrowserRouter
+          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+        >
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
